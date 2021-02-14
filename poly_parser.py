@@ -7,9 +7,9 @@ from .utils import get_images_for_poly
 
 def parse_polygons(path):
     """
-    insers polygons into db from a geojson pointed to by path
+    inserts polygons into db from a geojson pointed to by path
     :param path: str path to geojson file
-    :return:
+    :return: boolean success of function
     """
 
     # load geo object
@@ -25,7 +25,7 @@ def parse_polygons(path):
         # make sure there is no such polygon
         if db.session.query(Polygon.index).filter(Polygon.index==index).first():
             # we already have a polygon by this name
-            app.logger.error(f'Polygon {index} already exists')
+            app.logger.debug(f'Polygon {index} already exists')
             continue
         created_on = poly['properties']['createdAt']
         farm_id = poly['properties']['farmID']

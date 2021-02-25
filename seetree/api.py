@@ -1,10 +1,8 @@
 from flask import Blueprint, request, jsonify
 import os
-from .db import db
-from .image_parser import parse_images
-from .poly_parser import parse_polygons
-from .app import app
-from .models import Image, Polygon
+from seetree.db import db
+from seetree.parsers import parse_polygons, parse_images
+from seetree.models import Image, Polygon
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 session = db.session
@@ -14,12 +12,11 @@ session = db.session
 def load_images():
     # extract file path
     path = request.get_json().get('path')
-    app.logger.debug(f"got path {path}")
     # make sure file exists
     if not os.path.isfile(path):
         return f'File does not exist: {path}', 404
     # pass on to handler
-    if parse_images(path):
+    if parse_images.delay(path):
         return '', 201
     else:
         return f'Failed to load images from {path}', 500
@@ -33,10 +30,8 @@ def load_polygons():
     if not os.path.isfile(path):
         return f'File does not exist: {path}', 404
     # pass on to handler
-    if parse_polygons(path):
-        return '', 201
-    else:
-        return f'Failed to load polygons from {path}', 500
+    parse_polygons.delay(path)
+    return f'Request to process {path} passed to Celery', 201
 
 
 @api_bp.route('/get_polygon', methods=['POST'])

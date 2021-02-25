@@ -1,0 +1,38 @@
+version: '3.7'
+
+services:
+
+  backend:
+    build: .
+    image: seetree:latest
+    volumes:
+    # avoids rebuilding while developing
+    - ./seetree:/seetree/seetree
+    ports:
+    - 5000:5000
+    restart: always
+    environment:
+      LOG_LEVEL: DEBUG
+      FLASK_ENV: development
+    # running the builtin flask server to allow for easy hot reloading
+    command: flask run --port 5000 --host 0.0.0.0
+
+  celery:
+    build: .
+    image: seetree:latest
+    volumes:
+      # avoids rebuilding while developing
+      - ./seetree:/seetree/seetree
+    restart: always
+    links:
+      - rabbit
+    depends_on:
+      - rabbit
+    command: celery -A seetree.parsers worker
+
+  rabbit:
+    hostname: rabbit
+    image: rabbitmq:3-management
+    ports:
+      - 8080:15672
+      - 5672:5672

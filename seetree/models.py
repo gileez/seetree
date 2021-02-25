@@ -1,4 +1,4 @@
-from .db import db
+from seetree.db import db
 from datetime import datetime
 
 class Image(db.Model):
